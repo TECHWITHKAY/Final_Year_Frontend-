@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { getCommodities } from '@/api/commodities';
-import { getMarkets } from '@/api/markets';
+import { getAllCommodities } from '@/api/commodities';
+import { getAllMarkets } from '@/api/markets';
 import { submitPriceRecord, getMySubmissions } from '@/api/priceRecords';
 import { toast } from 'sonner';
 import { formatPrice, formatDate } from '@/utils/formatters';
@@ -14,8 +14,8 @@ const SubmitPricePage: React.FC = () => {
   const [form, setForm] = useState({ commodityId: '', marketId: '', price: '', recordedDate: new Date().toISOString().split('T')[0], source: '' });
   const [autoApprove, setAutoApprove] = useState(false);
 
-  const { data: commodities } = useQuery({ queryKey: ['commodities'], queryFn: () => getCommodities().then(r => r.data?.data || r.data || []) });
-  const { data: markets } = useQuery({ queryKey: ['markets'], queryFn: () => getMarkets().then(r => r.data?.data || r.data || []) });
+  const { data: commodities } = useQuery({ queryKey: ['commodities'], queryFn: () => getAllCommodities().then(r => r.data?.data || r.data || []) });
+  const { data: markets } = useQuery({ queryKey: ['markets'], queryFn: () => getAllMarkets().then(r => r.data?.data || r.data || []) });
   const { data: mySubmissions } = useQuery({ queryKey: ['my-submissions'], queryFn: () => getMySubmissions().then(r => r.data?.data || r.data || []) });
 
   const mutation = useMutation({

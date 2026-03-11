@@ -1,22 +1,17 @@
 import api from './axios';
 
-export const getLatestPrices = (params?: Record<string, any>) =>
-  api.get('/public/latest-prices', { params });
+export const getAllPriceRecords         = (page=0, size=20) =>
+  api.get('/price-records', { params: { page, size } });
 
-export const getDashboardSummary = () =>
-  api.get('/public/dashboard-summary');
+export const getPriceRecordById         = (id: string)          => api.get(`/price-records/${id}`);
+export const getPriceRecordsByCommodity = (commodityId: string) => api.get(`/price-records/commodity/${commodityId}`);
+export const getPriceRecordsByMarket    = (marketId: string)    => api.get(`/price-records/market/${marketId}`);
+export const createPriceRecord          = (data: any)   => api.post('/price-records', data);
+export const submitPriceRecord          = createPriceRecord;
+export const updatePriceRecord          = (id: string, data: any)=> api.put(`/price-records/${id}`, data);
+export const deletePriceRecord          = (id: string)          => api.delete(`/price-records/${id}`);
 
-export const getPriceRange = (commodityId: string) =>
-  api.get(`/public/price-range/${commodityId}`);
-
-export const getPendingRecords = () =>
-  api.get('/price-records/pending');
-
-export const getMySubmissions = () =>
-  api.get('/price-records/my-submissions');
-
-export const submitPriceRecord = (data: any) =>
-  api.post('/price-records', data);
-
-export const approvePriceRecord = (id: string, data: { approved: boolean; rejectionReason?: string }) =>
-  api.post(`/price-records/${id}/approve`, data);
+// Field Agent / Admin
+export const approvePriceRecord         = (id: string, data: any) => api.post(`/price-records/${id}/approve`, data);
+export const getPendingRecords          = ()            => api.get('/price-records/pending');
+export const getMySubmissions           = ()            => api.get('/price-records/my-submissions');

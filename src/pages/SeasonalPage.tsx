@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { getSeasonalData } from '@/api/seasonal';
+import { getSeasonalPatterns } from '@/api/seasonal';
 import { SeasonalChart } from '@/components/charts/SeasonalChart';
 import { GatePrompt } from '@/components/shared/GatePrompt';
 import { CommodityIcon } from '@/components/shared/CommodityIcon';
@@ -13,7 +13,7 @@ const SeasonalPage: React.FC = () => {
 
   const { data: seasonalData } = useQuery({
     queryKey: ['seasonal', String(selectedIdx + 1)],
-    queryFn: () => getSeasonalData(String(selectedIdx + 1)).then(r => r.data?.data || r.data || []),
+    queryFn: () => getSeasonalPatterns(String(selectedIdx + 1)).then(r => r.data?.data || r.data || []),
     staleTime: 10 * 60_000,
   });
 

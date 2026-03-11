@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { getVolatility, getInflation, getForecast, getDataQuality } from '@/api/analytics';
+import { getPriceVolatility, getInflationTrend, getForecast, getDataQualityReport } from '@/api/analytics';
 import { VolatilityChart } from '@/components/charts/VolatilityChart';
 import { formatPrice, formatPercentage } from '@/utils/formatters';
 import { COMMODITIES } from '@/utils/constants';
@@ -13,7 +13,7 @@ const AnalyticsPage: React.FC = () => {
 
   const { data: volatilityData } = useQuery({
     queryKey: ['volatility'],
-    queryFn: () => getVolatility().then(r => r.data?.data || r.data || []),
+    queryFn: () => getPriceVolatility().then(r => r.data?.data || r.data || []),
     enabled: isAuthenticated,
   });
 
@@ -21,7 +21,7 @@ const AnalyticsPage: React.FC = () => {
     queryKey: ['inflation-all'],
     queryFn: async () => {
       const results = await Promise.all(
-        COMMODITIES.map((_, i) => getInflation(String(i + 1)).then(r => r.data?.data || r.data).catch(() => null))
+        COMMODITIES.map((_, i) => getInflationTrend(String(i + 1)).then(r => r.data?.data || r.data).catch(() => null))
       );
       return results;
     },
@@ -41,7 +41,7 @@ const AnalyticsPage: React.FC = () => {
 
   const { data: dataQuality } = useQuery({
     queryKey: ['data-quality'],
-    queryFn: () => getDataQuality().then(r => r.data?.data || r.data),
+    queryFn: () => getDataQualityReport().then(r => r.data?.data || r.data),
     enabled: isAuthenticated && (hasRole('ADMIN') || hasRole('ANALYST')),
   });
 

@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { getCommodity } from '@/api/commodities';
-import { getPriceRange } from '@/api/priceRecords';
-import { getMonthlyTrend, getCityComparison, getInflation, getForecast } from '@/api/analytics';
-import { getSeasonalData } from '@/api/seasonal';
+import { getCommodityById } from '@/api/commodities';
+import { getPriceRange } from '@/api/public';
+import { getMonthlyTrend, getCityComparison, getInflationTrend, getForecast } from '@/api/analytics';
+import { getSeasonalPatterns } from '@/api/seasonal';
 import { StatCard } from '@/components/ui/StatCard';
 import { CommodityIcon } from '@/components/shared/CommodityIcon';
 import { PriceChangeTag } from '@/components/shared/PriceChangeTag';
@@ -26,7 +26,7 @@ const CommodityDetailPage: React.FC = () => {
 
   const { data: commodity } = useQuery({
     queryKey: ['commodity', id],
-    queryFn: () => getCommodity(id!).then(r => r.data?.data || r.data),
+    queryFn: () => getCommodityById(id!).then(r => r.data?.data || r.data),
     enabled: !!id,
   });
 
@@ -50,8 +50,8 @@ const CommodityDetailPage: React.FC = () => {
 
   const { data: seasonalData } = useQuery({
     queryKey: ['seasonal', id],
-    queryFn: () => getSeasonalData(id!).then(r => r.data?.data || r.data || []),
-    enabled: !!id && activeTab === 'Seasonal',
+    queryFn: () => getSeasonalPatterns(id!).then(r => r.data?.data || r.data || []),
+    enabled: !!id && isAuthenticated && activeTab === 'Seasonal',
   });
 
   const { data: forecast } = useQuery({
@@ -62,7 +62,7 @@ const CommodityDetailPage: React.FC = () => {
 
   const { data: inflation } = useQuery({
     queryKey: ['inflation', id],
-    queryFn: () => getInflation(id!).then(r => r.data?.data || r.data),
+    queryFn: () => getInflationTrend(id!).then(r => r.data?.data || r.data),
     enabled: !!id && isAuthenticated && activeTab === 'Analytics',
   });
 
@@ -144,9 +144,11 @@ const CommodityDetailPage: React.FC = () => {
       )}
 
       {activeTab === 'Seasonal' && (
-        <div className="card-ghana p-6">
-          <SeasonalChart data={Array.isArray(seasonalData) ? seasonalData : []} />
-        </div>
+        isAuthenticated ? (
+          <div className="card-ghana p-6">
+            <SeasonalChart data={Array.isArray(seasonalData) ? seasonalData : []} />
+          </div>
+        ) : <GatePrompt message="Sign in to view 12-month historical seasonal patterns." />
       )}
 
       {activeTab === 'Analytics' && (

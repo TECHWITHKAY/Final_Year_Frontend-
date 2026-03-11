@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
-import { exportPriceRecords } from '@/api/export';
+import { exportPriceRecords } from '@/api/exports';
 import { toast } from 'sonner';
 import { FileSpreadsheet, FileText } from 'lucide-react';
 
@@ -14,9 +14,9 @@ const ExportPage: React.FC = () => {
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
-  const exportMutation = useMutation({
-    mutationFn: () => exportPriceRecords({ format, dateFrom, dateTo }),
-    onSuccess: (res) => {
+  const exportMutation = useMutation<any, Error, { format: 'CSV' | 'EXCEL'; dateFrom: string; dateTo: string }>({
+    mutationFn: (vars) => exportPriceRecords(vars),
+    onSuccess: (res: any) => {
       const contentType = format === 'CSV' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       const ext = format === 'CSV' ? 'csv' : 'xlsx';
       const blob = new Blob([res.data], { type: contentType });
@@ -71,7 +71,7 @@ const ExportPage: React.FC = () => {
           </div>
 
           <button
-            onClick={() => exportMutation.mutate()}
+            onClick={() => exportMutation.mutate({ format, dateFrom, dateTo })}
             disabled={exportMutation.isPending}
             className="w-full rounded-md bg-accent py-2.5 text-sm font-bold text-accent-foreground hover:opacity-90 transition disabled:opacity-50"
           >

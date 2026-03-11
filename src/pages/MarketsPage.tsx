@@ -3,8 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { getMarkets } from '@/api/markets';
-import { getHealthScores } from '@/api/health';
+import { getAllHealthScores } from '@/api/health';
 import { GradeTag } from '@/components/shared/GradeTag';
 import { GatePrompt } from '@/components/shared/GatePrompt';
 import { CITIES } from '@/utils/constants';
@@ -19,7 +18,7 @@ const MarketsPage: React.FC = () => {
 
   const { data: healthData, isLoading } = useQuery({
     queryKey: ['health-scores'],
-    queryFn: () => getHealthScores().then(r => r.data?.data || r.data || []),
+    queryFn: () => getAllHealthScores().then(r => r.data?.data || r.data || []),
     staleTime: 10 * 60_000,
   });
 

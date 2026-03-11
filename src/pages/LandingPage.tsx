@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { TrendingUp, Calendar, BarChart2, ArrowRight } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
-import { getLatestPrices } from '@/api/priceRecords';
+import { getLatestPrices, getDashboardSummary } from '@/api/public';
 import { PublicNavbar } from '@/components/layout/PublicNavbar';
 import { COMMODITY_EMOJIS } from '@/utils/constants';
 import { formatPriceShort } from '@/utils/formatters';
@@ -36,6 +36,11 @@ const LandingPage: React.FC = () => {
     queryKey: ['latest-prices-public'],
     queryFn: () => getLatestPrices().then(r => r.data?.data || r.data || []),
     staleTime: 60_000,
+  });
+
+  const { data: summary } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: () => getDashboardSummary().then(r => r.data?.data || r.data || {}),
   });
 
   const tickerItems = Array.isArray(prices) ? prices.slice(0, 10) : [];
@@ -121,10 +126,10 @@ const LandingPage: React.FC = () => {
       <section className="bg-primary py-10">
         <div className="container mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 px-4">
           {[
-            { title: 'Commodities Tracked', value: 6 },
-            { title: 'Active Markets', value: 10 },
-            { title: 'Cities', value: 5 },
-            { title: 'Price Records', value: 1200 },
+            { title: 'Commodities Tracked', value: summary?.totalCommodities || 6 },
+            { title: 'Active Markets', value: summary?.activeMarkets || 10 },
+            { title: 'Cities', value: summary?.citiesCoverage || summary?.totalCities || 5 },
+            { title: 'Price Records', value: summary?.totalRecords || 1200 },
           ].map((stat, i) => (
             <motion.div
               key={stat.title}

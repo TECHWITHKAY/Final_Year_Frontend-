@@ -2,10 +2,10 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { getDataQuality } from '@/api/analytics';
-import { getHealthScores, recomputeHealth } from '@/api/health';
-import { recomputeSeasonal } from '@/api/seasonal';
-import { getDashboardSummary } from '@/api/priceRecords';
+import { getDataQualityReport } from '@/api/analytics';
+import { getAllHealthScores, recomputeHealthScores } from '@/api/health';
+import { recomputeAllPatterns } from '@/api/seasonal';
+import { getDashboardSummary } from '@/api/public';
 import { StatCard } from '@/components/ui/StatCard';
 import { GradeTag } from '@/components/shared/GradeTag';
 import { Users, ClipboardList, Database, Download, RefreshCw, Leaf } from 'lucide-react';
@@ -26,21 +26,21 @@ const AdminDashboardPage: React.FC = () => {
 
   const { data: dataQuality } = useQuery({
     queryKey: ['data-quality'],
-    queryFn: () => getDataQuality().then(r => r.data?.data || r.data),
+    queryFn: () => getDataQualityReport().then(r => r.data?.data || r.data),
   });
 
   const { data: healthScores } = useQuery({
     queryKey: ['health-scores'],
-    queryFn: () => getHealthScores().then(r => r.data?.data || r.data || []),
+    queryFn: () => getAllHealthScores().then(r => r.data?.data || r.data || []),
   });
 
   const recomputeHealthMutation = useMutation({
-    mutationFn: recomputeHealth,
+    mutationFn: recomputeHealthScores,
     onSuccess: () => { toast.success('Health scores recomputed'); queryClient.invalidateQueries({ queryKey: ['health-scores'] }); },
   });
 
   const recomputeSeasonalMutation = useMutation({
-    mutationFn: recomputeSeasonal,
+    mutationFn: recomputeAllPatterns,
     onSuccess: () => { toast.success('Seasonal data recomputed'); queryClient.invalidateQueries({ queryKey: ['seasonal'] }); },
   });
 

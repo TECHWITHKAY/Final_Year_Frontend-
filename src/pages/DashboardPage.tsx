@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Package, Store, MapPin, Clock, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { getDashboardSummary, getLatestPrices } from '@/api/priceRecords';
-import { getHealthScores } from '@/api/health';
+import { getDashboardSummary, getLatestPrices } from '@/api/public';
+import { getAllHealthScores } from '@/api/health';
 import { getMonthlyTrend, getCityComparison } from '@/api/analytics';
 import { StatCard } from '@/components/ui/StatCard';
 import { PriceChangeTag } from '@/components/shared/PriceChangeTag';
@@ -22,7 +22,7 @@ const DashboardPage: React.FC = () => {
   const [selectedCommodity, setSelectedCommodity] = useState('1');
 
   const { data: summary, isLoading: summaryLoading } = useQuery({
-    queryKey: ['dashboard-summary'],
+    queryKey: ['dashboard'],
     queryFn: () => getDashboardSummary().then(r => r.data?.data || r.data),
     staleTime: 5 * 60_000,
   });
@@ -34,8 +34,8 @@ const DashboardPage: React.FC = () => {
   });
 
   const { data: healthScores } = useQuery({
-    queryKey: ['health-scores'],
-    queryFn: () => getHealthScores().then(r => r.data?.data || r.data || []),
+    queryKey: ['health'],
+    queryFn: () => getAllHealthScores().then(r => r.data?.data || r.data || []),
     staleTime: 10 * 60_000,
   });
 
@@ -141,7 +141,10 @@ const DashboardPage: React.FC = () => {
 
       {/* Gate for guests */}
       {!isAuthenticated && (
-        <GatePrompt message="Full analytics, trends, and city comparisons available with a free account." />
+        <div className="relative h-64 mt-8 rounded-xl overflow-hidden border">
+          {/* We use GatePrompt inside a relative container to overlay on the charts area */}
+          <GatePrompt />
+        </div>
       )}
 
       {/* Admin widget */}

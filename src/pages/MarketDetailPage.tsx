@@ -1,9 +1,9 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getMarket } from '@/api/markets';
-import { getHealthScores } from '@/api/health';
-import { getLatestPrices } from '@/api/priceRecords';
+import { getMarketById } from '@/api/markets';
+import { getAllHealthScores } from '@/api/health';
+import { getLatestPrices } from '@/api/public';
 import { GradeTag } from '@/components/shared/GradeTag';
 import { formatPrice, formatDate } from '@/utils/formatters';
 
@@ -12,13 +12,13 @@ const MarketDetailPage: React.FC = () => {
 
   const { data: market } = useQuery({
     queryKey: ['market', id],
-    queryFn: () => getMarket(id!).then(r => r.data?.data || r.data),
+    queryFn: () => getMarketById(id!).then(r => r.data?.data || r.data),
     enabled: !!id,
   });
 
   const { data: healthScores } = useQuery({
     queryKey: ['health-scores'],
-    queryFn: () => getHealthScores().then(r => r.data?.data || r.data || []),
+    queryFn: () => getAllHealthScores().then(r => r.data?.data || r.data || []),
   });
 
   const { data: prices } = useQuery({
