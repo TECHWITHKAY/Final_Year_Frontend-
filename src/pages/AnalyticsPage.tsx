@@ -4,7 +4,6 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { getVolatility, getInflation, getForecast, getDataQuality } from '@/api/analytics';
 import { VolatilityChart } from '@/components/charts/VolatilityChart';
-import { InflationGauge } from '@/components/charts/InflationGauge';
 import { formatPrice, formatPercentage } from '@/utils/formatters';
 import { COMMODITIES } from '@/utils/constants';
 import { PriceChangeTag } from '@/components/shared/PriceChangeTag';
@@ -12,56 +11,61 @@ import { PriceChangeTag } from '@/components/shared/PriceChangeTag';
 const AnalyticsPage: React.FC = () => {
   const { isAuthenticated, hasRole } = useAuth();
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-
   const { data: volatilityData } = useQuery({
     queryKey: ['volatility'],
     queryFn: () => getVolatility().then(r => r.data?.data || r.data || []),
+    enabled: isAuthenticated,
   });
 
-  const inflationQueries = COMMODITIES.map((_, i) =>
-    useQuery({
-      queryKey: ['inflation', String(i + 1)],
-      queryFn: () => getInflation(String(i + 1)).then(r => r.data?.data || r.data),
-    })
-  );
+  const { data: inflationResults } = useQuery({
+    queryKey: ['inflation-all'],
+    queryFn: async () => {
+      const results = await Promise.all(
+        COMMODITIES.map((_, i) => getInflation(String(i + 1)).then(r => r.data?.data || r.data).catch(() => null))
+      );
+      return results;
+    },
+    enabled: isAuthenticated,
+  });
 
-  const forecastQueries = COMMODITIES.map((_, i) =>
-    useQuery({
-      queryKey: ['forecast', String(i + 1)],
-      queryFn: () => getForecast(String(i + 1)).then(r => r.data?.data || r.data),
-    })
-  );
+  const { data: forecastResults } = useQuery({
+    queryKey: ['forecast-all'],
+    queryFn: async () => {
+      const results = await Promise.all(
+        COMMODITIES.map((_, i) => getForecast(String(i + 1)).then(r => r.data?.data || r.data).catch(() => null))
+      );
+      return results;
+    },
+    enabled: isAuthenticated,
+  });
 
   const { data: dataQuality } = useQuery({
     queryKey: ['data-quality'],
     queryFn: () => getDataQuality().then(r => r.data?.data || r.data),
-    enabled: hasRole('ADMIN') || hasRole('ANALYST'),
+    enabled: isAuthenticated && (hasRole('ADMIN') || hasRole('ANALYST')),
   });
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   return (
     <div className="space-y-8">
       <h1 className="heading-accent font-display text-2xl font-bold text-foreground">Price Analytics</h1>
 
-      {/* Volatility */}
       <section className="card-ghana p-6">
         <h2 className="font-display text-lg font-semibold text-foreground mb-4">Price Volatility Ranking</h2>
         <VolatilityChart data={Array.isArray(volatilityData) ? volatilityData : []} />
       </section>
 
-      {/* Inflation */}
       <section>
         <h2 className="font-display text-lg font-semibold text-foreground mb-4">Inflation Monitor</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {COMMODITIES.map((name, i) => {
-            const data = inflationQueries[i]?.data;
+            const data = inflationResults?.[i];
             return (
               <div key={name} className="card-ghana p-5">
                 <p className="font-semibold text-foreground">{name}</p>
                 <div className="mt-2 flex items-end justify-between">
-                  <p className="font-mono text-xl font-bold" style={{
-                    color: (data?.percentChange || 0) > 0 ? '#C62828' : '#1B5E20'
-                  }}>
+                  <p className="font-mono text-xl font-bold" style={{ color: (data?.percentChange || 0) > 0 ? '#C62828' : '#1B5E20' }}>
                     {formatPercentage(data?.percentChange)}
                   </p>
                   <PriceChangeTag value={data?.percentChange} />
@@ -76,7 +80,6 @@ const AnalyticsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Forecasts */}
       <section className="card-ghana overflow-hidden">
         <div className="p-4 border-b border-border">
           <h2 className="font-display text-lg font-semibold text-foreground">Moving Average Forecasts</h2>
@@ -93,7 +96,7 @@ const AnalyticsPage: React.FC = () => {
             </thead>
             <tbody>
               {COMMODITIES.map((name, i) => {
-                const data = forecastQueries[i]?.data;
+                const data = forecastResults?.[i];
                 return (
                   <tr key={name} className="border-b border-border">
                     <td className="px-4 py-3 font-medium text-foreground">{name}</td>
@@ -108,7 +111,6 @@ const AnalyticsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Data Quality */}
       {(hasRole('ADMIN') || hasRole('ANALYST')) && dataQuality && (
         <section className="card-ghana p-6">
           <h2 className="font-display text-lg font-semibold text-foreground mb-4">Data Quality Report</h2>
