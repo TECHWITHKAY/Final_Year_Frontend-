@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { TrendingUp, Calendar, BarChart2, ArrowRight } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { getLatestPrices } from '@/api/priceRecords';
+import { PublicNavbar } from '@/components/layout/PublicNavbar';
 import { COMMODITY_EMOJIS } from '@/utils/constants';
 import { formatPriceShort } from '@/utils/formatters';
 import { StatCard } from '@/components/ui/StatCard';
@@ -14,7 +16,22 @@ const features = [
   { icon: BarChart2, title: 'Market Health Scores', desc: 'Every market rated A–F on data freshness, price stability, and commodity coverage.', color: 'text-primary' },
 ];
 
+const HERO_IMAGES = [
+  '/images/market3.jpg',
+  '/images/Market2.jpg',
+  '/images/istockphoto-2158596043-612x612.jpg'
+];
+
 const LandingPage: React.FC = () => {
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   const { data: prices } = useQuery({
     queryKey: ['latest-prices-public'],
     queryFn: () => getLatestPrices().then(r => r.data?.data || r.data || []),
@@ -25,25 +42,47 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="flex flex-col">
+      <PublicNavbar />
       {/* Hero */}
-      <section className="relative overflow-hidden bg-primary px-4 py-20 lg:py-32">
-        <div className="absolute inset-0 opacity-20" style={{
-          background: 'radial-gradient(ellipse at 30% 50%, #2E7D32 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, #1B5E20 0%, transparent 60%)',
-        }} />
-        <div className="container relative mx-auto max-w-4xl text-center">
+      <section className="relative overflow-hidden bg-primary min-h-screen flex items-center justify-center pt-20">
+        {/* Background Slideshow */}
+        <div className="absolute inset-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={heroIndex}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5 }}
+              className="absolute inset-0"
+            >
+              <img
+                src={HERO_IMAGES[heroIndex]}
+                alt="Ghanaian Market"
+                className="w-full h-full object-cover object-center animate-ken-burns"
+              />
+            </motion.div>
+          </AnimatePresence>
+          {/* Cinematic Gradient Overlay */}
+          <div className="absolute inset-0 hero-gradient-overlay z-10" />
+          {/* Bottom Fade */}
+          <div className="hero-bottom-fade" />
+        </div>
+
+        <div className="container relative z-30 mx-auto max-w-4xl px-4 text-center">
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="font-display text-4xl font-bold tracking-tight text-primary-foreground md:text-6xl"
+            className="font-display text-5xl font-bold tracking-tight text-primary-foreground md:text-7xl text-shadow-ghana leading-tight"
           >
-            Ghana's Commodity Markets, Decoded.
+            Ghana's Commodity <br className="hidden md:block" /> Markets, Decoded.
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="mx-auto mt-6 max-w-2xl text-lg text-primary-foreground/80"
+            className="mx-auto mt-8 max-w-2xl text-xl text-primary-foreground font-medium text-shadow-ghana leading-relaxed opacity-95"
           >
             Real-time price intelligence across 5 cities, 10 markets, and 6 essential commodities — powering smarter decisions for traders, consumers, and policymakers.
           </motion.p>
@@ -51,12 +90,12 @@ const LandingPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6"
           >
-            <Link to="/dashboard" className="rounded-lg bg-accent px-8 py-3 text-base font-bold text-accent-foreground shadow-lg hover:opacity-90 transition">
+            <Link to="/dashboard" className="w-full sm:w-auto rounded-xl bg-accent px-10 py-4 text-lg font-bold text-accent-foreground shadow-2xl hover:scale-105 transition-all active:scale-95">
               Explore Prices
             </Link>
-            <Link to="/login" className="rounded-lg border-2 border-primary-foreground/40 px-8 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-foreground/10 transition">
+            <Link to="/login" className="w-full sm:w-auto rounded-xl border-2 border-primary-foreground/40 px-10 py-4 text-lg font-semibold text-primary-foreground hover:bg-primary-foreground/10 transition backdrop-blur-sm">
               Sign In
             </Link>
           </motion.div>
