@@ -11,11 +11,6 @@ import { formatPrice, formatDate } from '@/utils/formatters';
 const SubmitPricePage: React.FC = () => {
   const { isAuthenticated, hasRole } = useAuth();
   const queryClient = useQueryClient();
-
-  if (!isAuthenticated || (!hasRole('FIELD_AGENT') && !hasRole('ADMIN'))) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   const [form, setForm] = useState({ commodityId: '', marketId: '', price: '', recordedDate: new Date().toISOString().split('T')[0], source: '' });
   const [autoApprove, setAutoApprove] = useState(false);
 
@@ -32,6 +27,10 @@ const SubmitPricePage: React.FC = () => {
     },
     onError: () => toast.error('Submission failed'),
   });
+
+  if (!isAuthenticated || (!hasRole('FIELD_AGENT') && !hasRole('ADMIN'))) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const update = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -90,7 +89,6 @@ const SubmitPricePage: React.FC = () => {
         </button>
       </div>
 
-      {/* My submissions */}
       {Array.isArray(mySubmissions) && mySubmissions.length > 0 && (
         <div className="card-ghana overflow-hidden">
           <div className="p-4 border-b border-border">

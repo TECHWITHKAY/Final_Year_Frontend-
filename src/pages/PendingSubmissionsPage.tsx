@@ -13,11 +13,10 @@ const PendingSubmissionsPage: React.FC = () => {
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [reason, setReason] = useState('');
 
-  if (!isAuthenticated || !hasRole('ADMIN')) return <Navigate to="/dashboard" replace />;
-
   const { data: pending, isLoading } = useQuery({
     queryKey: ['pending-submissions'],
     queryFn: () => getPendingRecords().then(r => r.data?.data || r.data || []),
+    enabled: isAuthenticated && hasRole('ADMIN'),
   });
 
   const approveMutation = useMutation({
@@ -29,6 +28,8 @@ const PendingSubmissionsPage: React.FC = () => {
     mutationFn: (id: string) => approvePriceRecord(id, { approved: false, rejectionReason: reason }),
     onSuccess: () => { toast.success('Submission rejected.'); setRejectId(null); setReason(''); queryClient.invalidateQueries({ queryKey: ['pending-submissions'] }); },
   });
+
+  if (!isAuthenticated || !hasRole('ADMIN')) return <Navigate to="/dashboard" replace />;
 
   const getDaysPendingColor = (days: number) => days <= 1 ? 'bg-secondary text-secondary-foreground' : days <= 3 ? 'bg-accent text-accent-foreground' : 'bg-destructive/10 text-destructive';
 
@@ -86,7 +87,6 @@ const PendingSubmissionsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Reject modal */}
       {rejectId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20">
           <div className="card-ghana w-full max-w-md p-6">
