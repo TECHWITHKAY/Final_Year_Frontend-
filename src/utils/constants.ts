@@ -1,13 +1,27 @@
-export const COMMODITIES = ['Maize', 'Rice', 'Tomato', 'Yam', 'Plantain', 'Groundnut'] as const;
-export const CITIES = ['Accra', 'Kumasi', 'Tamale', 'Takoradi', 'Cape Coast'] as const;
+export const COMMODITIES = [
+  'Maize (White)', 'Maize (Yellow)', 'Rice (Local)', 'Rice (Imported)',
+  'Millet', 'Sorghum', 'Yam (Pona)', 'Cassava', 'Plantain (Apem)',
+  'Plantain (Apantu)', 'Tomato', 'Onion', 'Pepper (Fresh)', 'Garden Eggs',
+  'Cowpea (White)', 'Soya Beans', 'Gari', 'Groundnut', 'Pineapple', 'Mango'
+] as const;
+
+export const CITIES = ['Accra', 'Kumasi', 'Tamale', 'Takoradi', 'Cape Coast', 'Sunyani', 'Wa', 'Koforidua'] as const;
 
 export const COMMODITY_EMOJIS: Record<string, string> = {
-  Maize: '🌽',
-  Rice: '🌾',
-  Tomato: '🍅',
-  Yam: '🍠',
-  Plantain: '🍌',
-  Groundnut: '🥜',
+  'Maize (White)': '🌽',
+  'Maize (Yellow)': '🌽',
+  'Rice (Local)': '🌾',
+  'Rice (Imported)': '🌾',
+  'Tomato': '🍅',
+  'Yam (Pona)': '🍠',
+  'Plantain (Apem)': '🍌',
+  'Plantain (Apantu)': '🍌',
+  'Groundnut': '🥜',
+  'Onion': '🧅',
+  'Cassava': '🥔',
+  'Mango': '🥭',
+  'Pineapple': '🍍',
+  'Gari': '🥣',
 };
 
 export const CHART_COLORS = [
