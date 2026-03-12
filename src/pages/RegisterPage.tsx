@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { motion } from 'framer-motion';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, User, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
 const RegisterPage: React.FC = () => {
   const [form, setForm] = useState({ fullName: '', username: '', email: '', password: '', confirmPassword: '' });
+  const [role, setRole] = useState<'VIEWER' | 'FIELD_AGENT'>('VIEWER');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -22,8 +23,20 @@ const RegisterPage: React.FC = () => {
     }
     setLoading(true);
     try {
-      await register({ fullName: form.fullName, username: form.username, email: form.email, password: form.password });
-      navigate('/dashboard');
+      await register({ 
+        fullName: form.fullName, 
+        username: form.username, 
+        email: form.email, 
+        password: form.password,
+        role: role
+      });
+      
+      if (role === 'FIELD_AGENT') {
+        toast.success('Agent account created! Awaiting admin approval.');
+        navigate('/login');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -100,10 +113,51 @@ const RegisterPage: React.FC = () => {
             </Link>
           </div>
 
-          <div>
-            <h1 className="font-display text-3xl font-bold text-foreground">Create account</h1>
-            <p className="mt-2 text-muted-foreground">Join the smarter way to track prices.</p>
-          </div>
+            <div>
+              <h1 className="font-display text-3xl font-bold text-foreground">Create account</h1>
+              <p className="mt-2 text-muted-foreground">Join the smarter way to track prices.</p>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-sm font-semibold text-foreground">Join as</label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setRole('VIEWER')}
+                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                    role === 'VIEWER' 
+                      ? 'border-accent bg-accent/5 shadow-md' 
+                      : 'border-input hover:border-accent/40 bg-background'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${role === 'VIEWER' ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'}`}>
+                    <User className="h-5 w-5" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold">Regular User</p>
+                    <p className="text-[10px] text-muted-foreground">View prices & trends</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRole('FIELD_AGENT')}
+                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                    role === 'FIELD_AGENT' 
+                      ? 'border-accent bg-accent/5 shadow-md' 
+                      : 'border-input hover:border-accent/40 bg-background'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg ${role === 'FIELD_AGENT' ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'}`}>
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-bold">Field Agent</p>
+                    <p className="text-[10px] text-muted-foreground">Submit market data</p>
+                  </div>
+                </button>
+              </div>
+            </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {[

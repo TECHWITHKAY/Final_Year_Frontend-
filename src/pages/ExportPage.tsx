@@ -15,7 +15,11 @@ const ExportPage: React.FC = () => {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   const exportMutation = useMutation<any, Error, { format: 'CSV' | 'EXCEL'; dateFrom: string; dateTo: string }>({
-    mutationFn: (vars) => exportPriceRecords(vars),
+    mutationFn: (vars) => exportPriceRecords({
+      exportType: vars.format,
+      fromDate: vars.dateFrom || undefined,
+      toDate: vars.dateTo || undefined,
+    }),
     onSuccess: (res: any) => {
       const contentType = format === 'CSV' ? 'text/csv' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       const ext = format === 'CSV' ? 'csv' : 'xlsx';

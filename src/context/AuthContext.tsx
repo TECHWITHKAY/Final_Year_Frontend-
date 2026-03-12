@@ -15,7 +15,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: { username: string; password: string }) => Promise<void>;
-  register: (data: { fullName: string; username: string; email: string; password: string }) => Promise<void>;
+  register: (data: { fullName: string; username: string; email: string; password: string; role?: string }) => Promise<void>;
   logout: () => void;
   hasRole: (role: string) => boolean;
   isGuest: boolean;
@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [setAuthData]);
 
-  const register = useCallback(async (data: { fullName: string; username: string; email: string; password: string }) => {
+  const register = useCallback(async (data: { fullName: string; username: string; email: string; password: string; role?: string }) => {
     setIsLoading(true);
     try {
       const res = await apiRegister(data);

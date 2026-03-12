@@ -20,11 +20,11 @@ export const VolatilityChart: React.FC<VolatilityChartProps> = ({ data, height =
     <BarChart data={data} layout="vertical" margin={{ top: 10, right: 20, left: 80, bottom: 0 }}>
       <CartesianGrid strokeDasharray="3 3" stroke="#E0EBE0" />
       <XAxis type="number" tick={{ fontSize: 12, fill: '#4A6741' }} />
-      <YAxis dataKey="commodity" type="category" tick={{ fontSize: 12, fill: '#4A6741' }} />
+      <YAxis dataKey="commodityName" type="category" tick={{ fontSize: 12, fill: '#4A6741' }} />
       <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E0EBE0' }} />
-      <Bar dataKey="stdDev" animationDuration={1000} radius={[0, 4, 4, 0]}>
+      <Bar dataKey="stdDevPrice" animationDuration={1000} radius={[0, 4, 4, 0]}>
         {data.map((entry, i) => (
-          <Cell key={i} fill={getVolatilityColor(entry.level)} />
+          <Cell key={i} fill={getVolatilityColor(entry.interpretation)} />
         ))}
       </Bar>
     </BarChart>

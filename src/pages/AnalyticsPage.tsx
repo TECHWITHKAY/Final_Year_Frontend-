@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getPriceVolatility, getInflationTrend, getForecast, getDataQualityReport } from '@/api/analytics';
 import { VolatilityChart } from '@/components/charts/VolatilityChart';
 import { formatPrice, formatPercentage } from '@/utils/formatters';
-import { COMMODITIES } from '@/utils/constants';
+import { getAllCommodities } from '@/api/commodities';
 import { PriceChangeTag } from '@/components/shared/PriceChangeTag';
 
 const AnalyticsPage: React.FC = () => {
@@ -17,26 +17,36 @@ const AnalyticsPage: React.FC = () => {
     enabled: isAuthenticated,
   });
 
+  const { data: commodities } = useQuery({
+    queryKey: ['commodities-list'],
+    queryFn: () => getAllCommodities().then(r => r.data?.data || r.data || []),
+    staleTime: 30 * 60_000,
+  });
+  
+  const commodityList = Array.isArray(commodities) ? commodities : [];
+
   const { data: inflationResults } = useQuery({
-    queryKey: ['inflation-all'],
+    queryKey: ['inflation-all', commodityList.length],
     queryFn: async () => {
+      if (!commodityList.length) return [];
       const results = await Promise.all(
-        COMMODITIES.map((_, i) => getInflationTrend(String(i + 1)).then(r => r.data?.data || r.data).catch(() => null))
+        commodityList.map((c: any) => getInflationTrend(String(c.id || c.commodityId)).then(r => r.data?.data || r.data).catch(() => null))
       );
       return results;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && commodityList.length > 0,
   });
 
   const { data: forecastResults } = useQuery({
-    queryKey: ['forecast-all'],
+    queryKey: ['forecast-all', commodityList.length],
     queryFn: async () => {
+      if (!commodityList.length) return [];
       const results = await Promise.all(
-        COMMODITIES.map((_, i) => getForecast(String(i + 1)).then(r => r.data?.data || r.data).catch(() => null))
+        commodityList.map((c: any) => getForecast(String(c.id || c.commodityId)).then(r => r.data?.data || r.data).catch(() => null))
       );
       return results;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && commodityList.length > 0,
   });
 
   const { data: dataQuality } = useQuery({
@@ -59,20 +69,21 @@ const AnalyticsPage: React.FC = () => {
       <section>
         <h2 className="font-display text-lg font-semibold text-foreground mb-4">Inflation Monitor</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {COMMODITIES.map((name, i) => {
+          {commodityList.map((c: any, i) => {
+            const name = c.name || c.commodityName;
             const data = inflationResults?.[i];
             return (
               <div key={name} className="card-ghana p-5">
                 <p className="font-semibold text-foreground">{name}</p>
                 <div className="mt-2 flex items-end justify-between">
-                  <p className="font-mono text-xl font-bold" style={{ color: (data?.percentChange || 0) > 0 ? '#C62828' : '#1B5E20' }}>
-                    {formatPercentage(data?.percentChange)}
+                  <p className="font-mono text-xl font-bold" style={{ color: (data?.percentageChange || 0) > 0 ? '#C62828' : '#1B5E20' }}>
+                    {formatPercentage(data?.percentageChange)}
                   </p>
-                  <PriceChangeTag value={data?.percentChange} />
+                  <PriceChangeTag value={data?.percentageChange} />
                 </div>
                 <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-                  <span>This month: {formatPrice(data?.currentAvg)}</span>
-                  <span>Last: {formatPrice(data?.previousAvg)}</span>
+                  <span>This month: {formatPrice(data?.currentMonthAvg)}</span>
+                  <span>Last: {formatPrice(data?.lastMonthAvg)}</span>
                 </div>
               </div>
             );
@@ -95,14 +106,15 @@ const AnalyticsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {COMMODITIES.map((name, i) => {
+              {commodityList.map((c: any, i) => {
+                const name = c.name || c.commodityName;
                 const data = forecastResults?.[i];
                 return (
                   <tr key={name} className="border-b border-border">
                     <td className="px-4 py-3 font-medium text-foreground">{name}</td>
-                    <td className="px-4 py-3 text-right font-mono text-foreground">{formatPrice(data?.movingAvg)}</td>
+                    <td className="px-4 py-3 text-right font-mono text-foreground">{formatPrice(data?.forecastPrice)}</td>
                     <td className="px-4 py-3 text-right font-mono font-bold text-primary">{formatPrice(data?.forecastPrice)}</td>
-                    <td className="px-4 py-3 text-right"><PriceChangeTag value={data?.trendPercent} /></td>
+                    <td className="px-4 py-3 text-right">{data?.forecastMonth || '—'}</td>
                   </tr>
                 );
               })}
@@ -115,7 +127,7 @@ const AnalyticsPage: React.FC = () => {
         <section className="card-ghana p-6">
           <h2 className="font-display text-lg font-semibold text-foreground mb-4">Data Quality Report</h2>
           <div className="text-center">
-            <p className="font-mono text-4xl font-bold text-primary">{dataQuality.completeness || 0}%</p>
+            <p className="font-mono text-4xl font-bold text-primary">{dataQuality.overallCompleteness?.toFixed(1) || 0}%</p>
             <p className="text-sm text-muted-foreground">Overall Data Completeness</p>
           </div>
         </section>

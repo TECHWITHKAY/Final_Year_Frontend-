@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getDashboardSummary, getLatestPrices } from '@/api/public';
 import { getAllHealthScores } from '@/api/health';
 import { getMonthlyTrend, getCityComparison } from '@/api/analytics';
+import { getAllCommodities } from '@/api/commodities';
 import { StatCard } from '@/components/ui/StatCard';
 import { PriceChangeTag } from '@/components/shared/PriceChangeTag';
 import { GradeTag } from '@/components/shared/GradeTag';
@@ -39,10 +40,24 @@ const DashboardPage: React.FC = () => {
     staleTime: 10 * 60_000,
   });
 
+  const { data: commodities } = useQuery({
+    queryKey: ['commodities-list'],
+    queryFn: () => getAllCommodities().then(r => r.data?.data || r.data || []),
+    staleTime: 30 * 60_000,
+  });
+
+  // Set default selected commodity once list is loaded
+  React.useEffect(() => {
+    if (commodities && commodities.length > 0 && selectedCommodity === '1') {
+      const firstId = String(commodities[0].id || commodities[0].commodityId);
+      if (firstId !== '1') setSelectedCommodity(firstId);
+    }
+  }, [commodities, selectedCommodity]);
+
   const { data: cityData } = useQuery({
     queryKey: ['city-comparison', selectedCommodity],
     queryFn: () => getCityComparison(selectedCommodity).then(r => r.data?.data || r.data || []),
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && !!selectedCommodity,
     staleTime: 5 * 60_000,
   });
 
@@ -128,10 +143,12 @@ const DashboardPage: React.FC = () => {
             <select
               value={selectedCommodity}
               onChange={e => setSelectedCommodity(e.target.value)}
-              className="rounded-md border border-input bg-card px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+               className="rounded-md border border-input bg-card px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              {COMMODITIES.map((c, i) => (
-                <option key={c} value={String(i + 1)}>{c}</option>
+              {(commodities || []).map((c: any) => (
+                <option key={c.id || c.commodityId} value={String(c.id || c.commodityId)}>
+                  {c.name || c.commodityName}
+                </option>
               ))}
             </select>
           </div>

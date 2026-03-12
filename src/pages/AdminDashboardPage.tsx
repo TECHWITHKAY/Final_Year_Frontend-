@@ -3,12 +3,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { getDataQualityReport } from '@/api/analytics';
+import { getDashboardSummary } from '@/api/public';
 import { getAllHealthScores, recomputeHealthScores } from '@/api/health';
 import { recomputeAllPatterns } from '@/api/seasonal';
-import { getDashboardSummary } from '@/api/public';
+import { getAllUsers, setUserStatus } from '@/api/users';
 import { StatCard } from '@/components/ui/StatCard';
 import { GradeTag } from '@/components/shared/GradeTag';
-import { Users, ClipboardList, Database, Download, RefreshCw, Leaf } from 'lucide-react';
+import { Users, ClipboardList, Database, Download, RefreshCw, Leaf, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 import { GRADE_COLORS } from '@/utils/constants';
@@ -34,6 +35,11 @@ const AdminDashboardPage: React.FC = () => {
     queryFn: () => getAllHealthScores().then(r => r.data?.data || r.data || []),
   });
 
+  const { data: users, refetch: refetchUsers } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: () => getAllUsers().then(r => r.data?.data || r.data || []),
+  });
+
   const recomputeHealthMutation = useMutation({
     mutationFn: recomputeHealthScores,
     onSuccess: () => { toast.success('Health scores recomputed'); queryClient.invalidateQueries({ queryKey: ['health-scores'] }); },
@@ -43,6 +49,20 @@ const AdminDashboardPage: React.FC = () => {
     mutationFn: recomputeAllPatterns,
     onSuccess: () => { toast.success('Seasonal data recomputed'); queryClient.invalidateQueries({ queryKey: ['seasonal'] }); },
   });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ userId, active }: { userId: number; active: boolean }) => setUserStatus(userId, active),
+    onSuccess: (_, variables) => {
+      toast.success(`User ${variables.active ? 'activated and notified' : 'deactivated'}`);
+      refetchUsers();
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to update user status');
+    }
+  });
+
+  const pendingUsers = (users || []).filter((u: any) => !u.active && u.role === 'FIELD_AGENT');
 
   // Grade distribution for donut
   const gradeCounts = ['A', 'B', 'C', 'D', 'F'].map(grade => ({
@@ -68,7 +88,7 @@ const AdminDashboardPage: React.FC = () => {
           <div className="card-ghana p-6">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4">Data Quality Overview</h2>
             <div className="text-center">
-              <p className="font-mono text-5xl font-bold text-primary">{dataQuality.completeness || 0}%</p>
+              <p className="font-mono text-5xl font-bold text-primary">{dataQuality.overallCompleteness?.toFixed(1) || 0}%</p>
               <p className="mt-1 text-sm text-muted-foreground">Overall Completeness</p>
             </div>
             <Link to="/analytics#data-quality" className="mt-4 inline-block text-sm font-medium text-primary hover:underline">View Full Report →</Link>
@@ -90,6 +110,68 @@ const AdminDashboardPage: React.FC = () => {
           ) : (
             <p className="text-center text-muted-foreground py-8">No health data available</p>
           )}
+        </div>
+      </div>
+
+      {/* User Management */}
+      <div className="card-ghana overflow-hidden">
+        <div className="p-6 border-b border-border flex justify-between items-center">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-foreground">Pending Approvals</h2>
+            <p className="text-sm text-muted-foreground">Field agents awaiting activation</p>
+          </div>
+          <span className="bg-accent/10 text-accent text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+            {pendingUsers.length} Pending
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <tr>
+                <th className="px-6 py-4">User</th>
+                <th className="px-6 py-4">Registration Details</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {pendingUsers.length > 0 ? (
+                pendingUsers.map((u: any) => (
+                  <tr key={u.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                          {u.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{u.username}</p>
+                          <p className="text-xs text-muted-foreground">ID: #{u.id}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-foreground">{u.email}</p>
+                      <p className="text-xs text-muted-foreground italic">Applied on {new Date(u.createdAt).toLocaleDateString()}</p>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => updateStatusMutation.mutate({ userId: u.id, active: true })}
+                        className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:text-primary-mid transition-colors"
+                      >
+                        <CheckCircle className="h-4 w-4" /> Approve & Notify
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground">
+                    No pending approval requests
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

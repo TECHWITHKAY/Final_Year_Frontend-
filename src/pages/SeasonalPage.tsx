@@ -5,15 +5,27 @@ import { getSeasonalPatterns } from '@/api/seasonal';
 import { SeasonalChart } from '@/components/charts/SeasonalChart';
 import { GatePrompt } from '@/components/shared/GatePrompt';
 import { CommodityIcon } from '@/components/shared/CommodityIcon';
-import { COMMODITIES } from '@/utils/constants';
+import { getAllCommodities } from '@/api/commodities';
 
 const SeasonalPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [selectedIdx, setSelectedIdx] = useState(0);
 
+  const { data: commodities } = useQuery({
+    queryKey: ['commodities-list'],
+    queryFn: () => getAllCommodities().then(r => r.data?.data || r.data || []),
+    staleTime: 30 * 60_000,
+  });
+  
+  const commodityList = Array.isArray(commodities) ? commodities : [];
+  const selectedCommodity = commodityList[selectedIdx];
+  const selectedId = selectedCommodity ? String(selectedCommodity.id || selectedCommodity.commodityId) : null;
+  const selectedName = selectedCommodity ? (selectedCommodity.name || selectedCommodity.commodityName) : '';
+
   const { data: seasonalData } = useQuery({
-    queryKey: ['seasonal', String(selectedIdx + 1)],
-    queryFn: () => getSeasonalPatterns(String(selectedIdx + 1)).then(r => r.data?.data || r.data || []),
+    queryKey: ['seasonal', selectedId],
+    queryFn: () => getSeasonalPatterns(selectedId as string).then(r => r.data?.data || r.data || []),
+    enabled: !!selectedId,
     staleTime: 10 * 60_000,
   });
 
@@ -33,18 +45,20 @@ const SeasonalPage: React.FC = () => {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {COMMODITIES.map((name, i) => (
+        {commodityList.map((c: any, i) => {
+          const name = c.name || c.commodityName;
+          return (
           <button key={name} onClick={() => setSelectedIdx(i)}
             className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
               selectedIdx === i ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground hover:text-foreground'
             }`}>
             <CommodityIcon name={name} size="sm" /> {name}
           </button>
-        ))}
+        )})}
       </div>
 
       <div className="card-ghana p-6">
-        <h2 className="font-display text-lg font-semibold text-foreground mb-4">{COMMODITIES[selectedIdx]} — 12-Month Seasonal Pattern</h2>
+        <h2 className="font-display text-lg font-semibold text-foreground mb-4">{selectedName} — 12-Month Seasonal Pattern</h2>
         {isAuthenticated ? (
           <SeasonalChart data={Array.isArray(seasonalData) ? seasonalData : []} />
         ) : (
@@ -60,12 +74,12 @@ const SeasonalPage: React.FC = () => {
       {isAuthenticated && bestMonth && worstMonth && (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="card-ghana kente-accent p-5">
-            <p className="text-sm text-muted-foreground">Best month to buy {COMMODITIES[selectedIdx]}</p>
+            <p className="text-sm text-muted-foreground">Best month to buy {selectedName}</p>
             <p className="mt-1 font-display text-xl font-bold text-primary">{bestMonth.month}</p>
             <p className="text-sm text-muted-foreground">Index {bestMonth.seasonalIndex?.toFixed(2)} — {((1 - bestMonth.seasonalIndex) * 100).toFixed(0)}% below average</p>
           </div>
           <div className="card-ghana p-5 border-l-[3px] border-l-destructive">
-            <p className="text-sm text-muted-foreground">Worst month to buy {COMMODITIES[selectedIdx]}</p>
+            <p className="text-sm text-muted-foreground">Worst month to buy {selectedName}</p>
             <p className="mt-1 font-display text-xl font-bold text-destructive">{worstMonth.month}</p>
             <p className="text-sm text-muted-foreground">Index {worstMonth.seasonalIndex?.toFixed(2)} — {((worstMonth.seasonalIndex - 1) * 100).toFixed(0)}% above average</p>
           </div>
