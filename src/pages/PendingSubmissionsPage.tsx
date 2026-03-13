@@ -20,12 +20,12 @@ const PendingSubmissionsPage: React.FC = () => {
   });
 
   const approveMutation = useMutation({
-    mutationFn: (id: string) => approvePriceRecord(id, { approved: true }),
+    mutationFn: (id: string) => approvePriceRecord(id, { priceRecordId: id, approved: true }),
     onSuccess: () => { toast.success('Price record approved and live.'); queryClient.invalidateQueries({ queryKey: ['pending-submissions'] }); },
   });
 
   const rejectMutation = useMutation({
-    mutationFn: (id: string) => approvePriceRecord(id, { approved: false, rejectionReason: reason }),
+    mutationFn: (id: string) => approvePriceRecord(id, { priceRecordId: id, approved: false, rejectionReason: reason }),
     onSuccess: () => { toast.success('Submission rejected.'); setRejectId(null); setReason(''); queryClient.invalidateQueries({ queryKey: ['pending-submissions'] }); },
   });
 
