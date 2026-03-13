@@ -12,7 +12,7 @@ const getSeasonalColor = (index: number) => {
   return '#C62828';
 };
 
-export const SeasonalChart: React.FC<SeasonalChartProps> = ({ data, height = 350 }) => (
+export const SeasonalChart: React.FC<SeasonalChartProps> = ({ data, height = 450 }) => (
   <ResponsiveContainer width="100%" height={height}>
     <BarChart data={data} margin={{ top: 10, right: 20, left: 20, bottom: 20 }}>
       <CartesianGrid strokeDasharray="3 3" stroke="#E0EBE0" />

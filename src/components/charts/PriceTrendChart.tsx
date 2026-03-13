@@ -7,7 +7,7 @@ interface PriceTrendChartProps {
   height?: number;
 }
 
-export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ data, lines, height = 350 }) => {
+export const PriceTrendChart: React.FC<PriceTrendChartProps> = ({ data, lines, height = 450 }) => {
   const defaultLines = [{ key: 'avgPrice', name: 'Avg Price', color: '#1B5E20' }];
   const chartLines = lines || defaultLines;
 

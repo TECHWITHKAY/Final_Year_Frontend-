@@ -15,6 +15,17 @@ interface CommodityCardProps {
   index: number;
 }
 
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'Grains': return 'border-t-green-500';
+    case 'Tubers': return 'border-t-orange-500';
+    case 'Vegetables': return 'border-t-red-500';
+    case 'Fruits': return 'border-t-yellow-500';
+    case 'Legumes': return 'border-t-amber-800'; // Brown
+    default: return 'border-t-gray-300';
+  }
+};
+
 export const CommodityCard: React.FC<CommodityCardProps> = ({ commodity, priceData, index }) => {
   const { data: trend } = useQuery({
     queryKey: ['trend', commodity.id || commodity.name, 3],
@@ -33,7 +44,7 @@ export const CommodityCard: React.FC<CommodityCardProps> = ({ commodity, priceDa
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="card-ghana p-6 hover:shadow-md transition-shadow flex flex-col h-full"
+      className={`card-ghana flex flex-col h-full bg-card border-t-4 ${getCategoryColor(commodity.category)} hover:-translate-y-1.5 hover:shadow-xl hover:border-black/5 transition-all duration-300 p-8`}
     >
       <div className="flex items-start justify-between">
         <CommodityIcon name={commodity.name} size="lg" />
@@ -55,16 +66,18 @@ export const CommodityCard: React.FC<CommodityCardProps> = ({ commodity, priceDa
       <h3 className="mt-3 font-display text-xl font-bold text-foreground">{commodity.name}</h3>
       <p className="text-xs text-muted-foreground">per {commodity.unit || 'kg'}</p>
       
-      <div className="mt-3 flex items-end justify-between">
-        <p className="font-mono text-2xl font-bold text-primary">
-          {formatPrice(priceData?.avgPrice || priceData?.price)}
-        </p>
-        <PriceChangeTag value={priceData?.percentChange} />
+      <div className="mt-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <p className="font-mono text-3xl font-extrabold text-primary">
+            {formatPrice(priceData?.avgPrice || priceData?.price)}
+          </p>
+          <PriceChangeTag value={priceData?.percentChange} />
+        </div>
       </div>
 
-      <div className="mt-4 flex-1 h-16 w-full opacity-60 pointer-events-none">
+      <div className="mt-6 flex-1 h-24 w-full opacity-70 pointer-events-none">
         {trend && trend.length > 0 && (
-          <PriceTrendChart data={trend} height={60} />
+          <PriceTrendChart data={trend} height={90} lines={[{ key: 'avgPrice', name: 'Avg Price', color: '#1B5E20' }]} />
         )}
       </div>
 

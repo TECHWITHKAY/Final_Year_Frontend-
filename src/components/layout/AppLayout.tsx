@@ -50,10 +50,10 @@ export const AppLayout: React.FC = () => {
             key={item.path}
             to={item.path}
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all duration-200 ${
               isActive(item.path)
-                ? 'bg-secondary text-secondary-foreground kente-accent'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                ? 'bg-green-50 text-[#1B5E20] font-bold border-l-4 border-l-[#1B5E20] shadow-sm'
+                : 'text-muted-foreground font-medium border-l-4 border-l-transparent hover:bg-muted hover:text-foreground'
             }`}
           >
             <item.icon className="h-4 w-4 shrink-0" />
@@ -69,10 +69,10 @@ export const AppLayout: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all duration-200 ${
                   isActive(item.path)
-                    ? 'bg-secondary text-secondary-foreground kente-accent'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-green-50 text-[#1B5E20] font-bold border-l-4 border-l-[#1B5E20] shadow-sm'
+                    : 'text-muted-foreground font-medium border-l-4 border-l-transparent hover:bg-muted hover:text-foreground'
                 }`}
               >
                 <item.icon className="h-4 w-4 shrink-0" />

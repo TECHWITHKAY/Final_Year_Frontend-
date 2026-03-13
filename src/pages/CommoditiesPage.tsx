@@ -31,22 +31,23 @@ const CommoditiesPage: React.FC = () => {
     prices?.find((p: any) => (p.commodity || p.commodityName) === name);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="heading-accent font-display text-2xl font-bold text-foreground">Commodity Intelligence</h1>
-        <p className="mt-2 text-muted-foreground">Track prices, seasonal patterns, and volatility for Ghana's essential food commodities.</p>
+    <div className="space-y-8">
+      {/* Page Header Banner */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50/40 border border-green-100 rounded-2xl p-8 shadow-sm">
+        <h1 className="heading-accent font-display text-3xl font-extrabold text-[#1B5E20]">Commodity Intelligence</h1>
+        <p className="mt-2 text-lg text-muted-foreground max-w-2xl">Track prices, seasonal patterns, and volatility for Ghana's essential food commodities.</p>
       </div>
 
       {/* Category filter */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3">
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+            className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${
               activeCategory === cat
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-card border border-border text-muted-foreground hover:text-foreground'
+                ? 'bg-[#1B5E20] text-white shadow-md'
+                : 'bg-transparent border border-muted-foreground/30 text-muted-foreground hover:border-[#1B5E20] hover:text-[#1B5E20] hover:bg-green-50/50'
             }`}
           >
             {cat}
@@ -55,7 +56,7 @@ const CommoditiesPage: React.FC = () => {
       </div>
 
       {/* Commodity Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading
           ? Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="card-ghana p-6"><div className="shimmer h-40 rounded" /></div>
