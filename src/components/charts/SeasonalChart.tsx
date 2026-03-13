@@ -14,10 +14,19 @@ const getSeasonalColor = (index: number) => {
 
 export const SeasonalChart: React.FC<SeasonalChartProps> = ({ data, height = 350 }) => (
   <ResponsiveContainer width="100%" height={height}>
-    <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+    <BarChart data={data} margin={{ top: 10, right: 20, left: 20, bottom: 20 }}>
       <CartesianGrid strokeDasharray="3 3" stroke="#E0EBE0" />
-      <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#4A6741' }} />
-      <YAxis tick={{ fontSize: 12, fill: '#4A6741' }} />
+      <XAxis 
+        dataKey="monthName" 
+        interval={0}
+        tickFormatter={(val) => val ? String(val).substring(0, 3) : ''}
+        tick={{ fontSize: 12, fill: '#4A6741' }} 
+        label={{ value: 'Month', position: 'insideBottom', offset: -15, fill: '#4A6741', fontSize: 12, fontWeight: 500 }} 
+      />
+      <YAxis 
+        tick={{ fontSize: 12, fill: '#4A6741' }} 
+        label={{ value: 'Seasonal Index', angle: -90, position: 'insideLeft', offset: -5, fill: '#4A6741', fontSize: 12, fontWeight: 500 }} 
+      />
       <Tooltip
         contentStyle={{ borderRadius: 8, border: '1px solid #E0EBE0' }}
         formatter={(v: number) => [v.toFixed(2), 'Seasonal Index']}

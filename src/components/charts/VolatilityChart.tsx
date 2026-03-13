@@ -17,10 +17,19 @@ const getVolatilityColor = (level: string) => {
 
 export const VolatilityChart: React.FC<VolatilityChartProps> = ({ data, height = 350 }) => (
   <ResponsiveContainer width="100%" height={height}>
-    <BarChart data={data} layout="vertical" margin={{ top: 10, right: 20, left: 80, bottom: 0 }}>
+    <BarChart data={data} layout="vertical" margin={{ top: 10, right: 30, left: 110, bottom: 20 }}>
       <CartesianGrid strokeDasharray="3 3" stroke="#E0EBE0" />
-      <XAxis type="number" tick={{ fontSize: 12, fill: '#4A6741' }} />
-      <YAxis dataKey="commodityName" type="category" tick={{ fontSize: 12, fill: '#4A6741' }} />
+      <XAxis 
+        type="number" 
+        tick={{ fontSize: 12, fill: '#4A6741' }} 
+        label={{ value: 'Volatility StdDev (GHS)', position: 'insideBottom', offset: -15, fill: '#4A6741', fontSize: 12, fontWeight: 500 }} 
+      />
+      <YAxis 
+        dataKey="commodityName" 
+        type="category" 
+        width={100}
+        tick={{ fontSize: 12, fill: '#4A6741' }} 
+      />
       <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #E0EBE0' }} />
       <Bar dataKey="stdDevPrice" animationDuration={1000} radius={[0, 4, 4, 0]}>
         {data.map((entry, i) => (
