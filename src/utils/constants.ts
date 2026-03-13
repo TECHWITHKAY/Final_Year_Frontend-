@@ -29,11 +29,11 @@ export const CHART_COLORS = [
 ];
 
 export const GRADE_COLORS: Record<string, string> = {
-  A: '#1B5E20',
-  B: '#33691E',
-  C: '#F57F17',
-  D: '#E65100',
-  F: '#B71C1C',
+  A: '#1B5E20', // Dark Green
+  B: '#FFB300', // Amber
+  C: '#FB8C00', // Orange
+  D: '#E53935', // Red
+  F: '#8E0000', // Dark Red
 };
 
 export const ROLES = {
