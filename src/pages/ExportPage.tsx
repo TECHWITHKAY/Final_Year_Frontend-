@@ -23,7 +23,7 @@ import {
 
 const ExportPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [format, setFormat] = useState<'CSV' | 'XLSX'>('CSV');
+  const [format, setFormat] = useState<'CSV' | 'EXCEL'>('CSV');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedCommodities, setSelectedCommodities] = useState<number[]>([]);
@@ -54,7 +54,7 @@ const ExportPage: React.FC = () => {
     }
   };
 
-  const exportMutation = useMutation<any, Error, { format: 'CSV' | 'XLSX'; dateFrom: string; dateTo: string }>({
+  const exportMutation = useMutation<any, Error, { format: 'CSV' | 'EXCEL'; dateFrom: string; dateTo: string }>({
     mutationFn: (vars) => exportPriceRecords({
       exportType: vars.format,
       fromDate: vars.dateFrom || undefined,
@@ -219,7 +219,7 @@ const ExportPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { val: 'CSV' as const, icon: FileText, label: 'Text-Encoded CSV', desc: 'Best for Python, R, Stata' },
-                    { val: 'XLSX' as const, icon: FileSpreadsheet, label: 'Microsoft Excel', desc: 'Formatted for Pivot Tables' },
+                    { val: 'EXCEL' as const, icon: FileSpreadsheet, label: 'Microsoft Excel', desc: 'Formatted for Pivot Tables' },
                   ].map(opt => (
                     <button 
                       key={opt.val} 
