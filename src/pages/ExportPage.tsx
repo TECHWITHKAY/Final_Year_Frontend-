@@ -23,7 +23,7 @@ import {
 
 const ExportPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [format, setFormat] = useState<'CSV' | 'EXCEL'>('CSV');
+  const [format, setFormat] = useState<'CSV' | 'XLSX'>('CSV');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selectedCommodities, setSelectedCommodities] = useState<number[]>([]);
@@ -54,7 +54,7 @@ const ExportPage: React.FC = () => {
     }
   };
 
-  const exportMutation = useMutation<any, Error, { format: 'CSV' | 'EXCEL'; dateFrom: string; dateTo: string }>({
+  const exportMutation = useMutation<any, Error, { format: 'CSV' | 'XLSX'; dateFrom: string; dateTo: string }>({
     mutationFn: (vars) => exportPriceRecords({
       exportType: vars.format,
       fromDate: vars.dateFrom || undefined,
@@ -219,7 +219,7 @@ const ExportPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { val: 'CSV' as const, icon: FileText, label: 'Text-Encoded CSV', desc: 'Best for Python, R, Stata' },
-                    { val: 'EXCEL' as const, icon: FileSpreadsheet, label: 'Microsoft Excel', desc: 'Formatted for Pivot Tables' },
+                    { val: 'XLSX' as const, icon: FileSpreadsheet, label: 'Microsoft Excel', desc: 'Formatted for Pivot Tables' },
                   ].map(opt => (
                     <button 
                       key={opt.val} 
@@ -265,7 +265,7 @@ const ExportPage: React.FC = () => {
 
         {/* Sidebar panels */}
         <div className="space-y-6">
-          <div className="card-ghana p-6 bg-[#1B5E20] text-white border-none shadow-xl">
+          <div className="rounded-2xl p-6 bg-[#1B5E20] text-white shadow-xl">
             <div className="flex items-center gap-2 mb-4">
               <CheckCircle2 className="h-5 w-5 text-amber-300" />
               <h3 className="font-display text-lg font-black">What's included</h3>
