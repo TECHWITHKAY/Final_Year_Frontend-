@@ -20,6 +20,8 @@ import ExportPage from "@/pages/ExportPage";
 import AdminDashboardPage from "@/pages/AdminDashboardPage";
 import PendingSubmissionsPage from "@/pages/PendingSubmissionsPage";
 import SubmitPricePage from "@/pages/SubmitPricePage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -44,6 +46,8 @@ const App = () => (
             </Route>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* App routes with sidebar */}
             <Route element={<AppLayout />}>

@@ -1,18 +1,27 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { motion } from 'framer-motion';
-import { CheckCircle2, User, MapPin } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, User, MapPin, Building2, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { registerAgent } from '@/api/auth';
 
 const RegisterPage: React.FC = () => {
-  const [form, setForm] = useState({ fullName: '', username: '', email: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ 
+    fullName: '', 
+    username: '', 
+    email: '', 
+    password: '', 
+    confirmPassword: '',
+    operatingCity: '',
+    applicationNote: ''
+  });
   const [role, setRole] = useState<'VIEWER' | 'FIELD_AGENT'>('VIEWER');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const update = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const update = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,18 +32,25 @@ const RegisterPage: React.FC = () => {
     }
     setLoading(true);
     try {
-      await register({ 
-        fullName: form.fullName, 
-        username: form.username, 
-        email: form.email, 
-        password: form.password,
-        role: role
-      });
-      
       if (role === 'FIELD_AGENT') {
-        toast.success('Agent account created! Awaiting admin approval.');
+        await registerAgent({
+          username: form.username,
+          email: form.email,
+          password: form.password,
+          operatingCity: form.operatingCity,
+          applicationNote: form.applicationNote
+        });
+        toast.success('Agent application submitted! Awaiting admin review.');
         navigate('/login');
       } else {
+        await register({ 
+          fullName: form.fullName, 
+          username: form.username, 
+          email: form.email, 
+          password: form.password,
+          role: role
+        });
+        toast.success('Account created successfully!');
         navigate('/dashboard');
       }
     } catch (err: any) {
@@ -48,7 +64,6 @@ const RegisterPage: React.FC = () => {
     <div className="flex min-h-screen bg-background">
       {/* Left panel - Immersive Background */}
       <div className="relative hidden lg:flex lg:w-1/2 overflow-hidden bg-primary">
-        {/* Background Image with Ken Burns */}
         <div className="absolute inset-0 z-0">
           <img
             src="/images/Market2.jpg"
@@ -56,7 +71,6 @@ const RegisterPage: React.FC = () => {
             className="w-full h-full object-cover animate-ken-burns"
             style={{ animationIterationCount: 'infinite', animationDirection: 'alternate', animationDuration: '20s' }}
           />
-          {/* Dark Green Overlay */}
           <div className="absolute inset-0 bg-[#143C14]/75" />
         </div>
 
@@ -84,11 +98,11 @@ const RegisterPage: React.FC = () => {
                 'Trusted by traders & policymakers'
               ].map((item, i) => (
                 <motion.li 
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + (i * 0.1) }}
-                  className="flex items-center gap-3 text-primary-foreground/90 text-lg font-medium"
+                   key={i}
+                   initial={{ opacity: 0, x: -20 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   transition={{ delay: 0.3 + (i * 0.1) }}
+                   className="flex items-center gap-3 text-primary-foreground/90 text-lg font-medium"
                 >
                   <CheckCircle2 className="h-6 w-6 text-accent" />
                   <span>{item}</span>
@@ -113,78 +127,140 @@ const RegisterPage: React.FC = () => {
             </Link>
           </div>
 
-            <div>
-              <h1 className="font-display text-3xl font-bold text-foreground">Create account</h1>
-              <p className="mt-2 text-muted-foreground">Join the smarter way to track prices.</p>
-            </div>
+          <div>
+            <h1 className="font-display text-3xl font-bold text-foreground">Create account</h1>
+            <p className="mt-2 text-muted-foreground">Join the smarter way to track prices.</p>
+          </div>
 
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-foreground">Join as</label>
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setRole('VIEWER')}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                    role === 'VIEWER' 
-                      ? 'border-accent bg-accent/5 shadow-md' 
-                      : 'border-input hover:border-accent/40 bg-background'
-                  }`}
-                >
-                  <div className={`p-2 rounded-lg ${role === 'VIEWER' ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'}`}>
-                    <User className="h-5 w-5" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-bold">Regular User</p>
-                    <p className="text-[10px] text-muted-foreground">View prices & trends</p>
-                  </div>
-                </button>
+          <div className="space-y-4">
+            <label className="block text-sm font-semibold text-foreground">Join as</label>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setRole('VIEWER')}
+                className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                  role === 'VIEWER' 
+                    ? 'border-accent bg-accent/5 shadow-md' 
+                    : 'border-input hover:border-accent/40 bg-background'
+                }`}
+              >
+                <div className={`p-2 rounded-lg ${role === 'VIEWER' ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'}`}>
+                  <User className="h-5 w-5" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold">Analyst</p>
+                  <p className="text-[10px] text-muted-foreground">View prices & trends</p>
+                </div>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setRole('FIELD_AGENT')}
-                  className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                    role === 'FIELD_AGENT' 
-                      ? 'border-accent bg-accent/5 shadow-md' 
-                      : 'border-input hover:border-accent/40 bg-background'
-                  }`}
-                >
-                  <div className={`p-2 rounded-lg ${role === 'FIELD_AGENT' ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'}`}>
-                    <MapPin className="h-5 w-5" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-bold">Field Agent</p>
-                    <p className="text-[10px] text-muted-foreground">Submit market data</p>
-                  </div>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setRole('FIELD_AGENT')}
+                className={`flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                  role === 'FIELD_AGENT' 
+                    ? 'border-accent bg-accent/5 shadow-md' 
+                    : 'border-input hover:border-accent/40 bg-background'
+                }`}
+              >
+                <div className={`p-2 rounded-lg ${role === 'FIELD_AGENT' ? 'bg-accent text-accent-foreground' : 'bg-muted text-muted-foreground'}`}>
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold">Field Agent</p>
+                  <p className="text-[10px] text-muted-foreground">Submit market data</p>
+                </div>
+              </button>
             </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {[
-              { label: 'Full Name', field: 'fullName', type: 'text', placeholder: 'Kwame Asante' },
-              { label: 'Username', field: 'username', type: 'text', placeholder: 'kwameasante' },
-              { label: 'Email', field: 'email', type: 'email', placeholder: 'kwame@example.com' },
-              { label: 'Password', field: 'password', type: 'password', placeholder: '••••••••' },
-              { label: 'Confirm Password', field: 'confirmPassword', type: 'password', placeholder: '••••••••' },
-            ].map(({ label, field, type, placeholder }) => (
-              <div key={field}>
-                <label className="mb-2 block text-sm font-semibold text-foreground">{label}</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div>
+                  <label className="mb-2 block text-sm font-semibold text-foreground">Username</label>
+                  <input
+                    type="text" value={form.username} onChange={update('username')}
+                    className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm"
+                    placeholder="kwameasante" required
+                  />
+               </div>
+               <div>
+                  <label className="mb-2 block text-sm font-semibold text-foreground">Email</label>
+                  <input
+                    type="email" value={form.email} onChange={update('email')}
+                    className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm"
+                    placeholder="kwame@example.com" required
+                  />
+               </div>
+            </div>
+
+            <AnimatePresence mode="popLayout">
+              {role === 'FIELD_AGENT' && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-4 overflow-hidden"
+                >
+                  <div>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground text-accent">
+                      <Building2 className="h-4 w-4" /> Operating City
+                    </label>
+                    <input
+                      type="text" value={form.operatingCity} onChange={update('operatingCity')}
+                      className="w-full rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm"
+                      placeholder="e.g. Accra, Kumasi" required={role === 'FIELD_AGENT'}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground text-accent">
+                      <FileText className="h-4 w-4" /> Application Note
+                    </label>
+                    <textarea
+                      value={form.applicationNote} onChange={update('applicationNote') as any}
+                      className="w-full rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm min-h-[80px]"
+                      placeholder="Tell us about your experience..."
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className={`grid grid-cols-1 ${role === 'VIEWER' ? 'md:grid-cols-2' : ''} gap-4`}>
+              <div className={role === 'VIEWER' ? '' : 'hidden'}>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Full Name</label>
                 <input
-                  type={type} value={(form as any)[field]} onChange={update(field)}
-                  className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm"
-                  placeholder={placeholder} required
+                  type="text" value={form.fullName} onChange={update('fullName')}
+                  className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm"
+                  placeholder="Kwame Asante" required={role === 'VIEWER'}
                 />
               </div>
-            ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Password</label>
+                <input
+                  type="password" value={form.password} onChange={update('password')}
+                  className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm"
+                  placeholder="••••••••" required
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-foreground">Confirm Password</label>
+                <input
+                  type="password" value={form.confirmPassword} onChange={update('confirmPassword')}
+                  className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm"
+                  placeholder="••••••••" required
+                />
+              </div>
+            </div>
+
             <button type="submit" disabled={loading}
-              className="w-full rounded-xl bg-accent py-3.5 text-base font-bold text-accent-foreground shadow-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50">
-              {loading ? 'Creating account...' : 'Create Account'}
+              className="w-full rounded-xl bg-accent py-4 text-base font-bold text-accent-foreground shadow-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 mt-4">
+              {loading ? 'Processing...' : role === 'FIELD_AGENT' ? 'Submit Application' : 'Create Analyst Account'}
             </button>
           </form>
 
-          <p className="mt-4 text-xs text-muted-foreground text-center">
-            Field agent accounts require admin verification. Contact commoditygh@admin.com to request agent access.
-          </p>
           <p className="mt-8 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link to="/login" className="font-bold text-primary hover:text-primary-mid transition-colors">Sign in here</Link>
