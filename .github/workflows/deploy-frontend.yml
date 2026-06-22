@@ -1,0 +1,81 @@
+name: Deploy Frontend to AWS S3 & CloudFront
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+
+permissions:
+  id-token: write   # Required for AWS OIDC
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+
+      - name: Install & Build Frontend
+        env:
+          VITE_API_BASE_URL: ${{ secrets.APP_RUNNER_URL }}
+        run: |
+          # Detect if we are in a subdirectory (monorepo) or root setup
+          if [ -d "frontend" ]; then
+            echo "Building from frontend/ directory..."
+            cd frontend
+          else
+            echo "Building from root directory..."
+          fi
+          
+          npm ci
+          npm run build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-deploy
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to S3 (Sync assets with caching)
+        run: |
+          # Set directory source path
+          SRC_DIR="dist"
+          if [ -d "frontend/dist" ]; then
+            SRC_DIR="frontend/dist"
+          fi
+          
+          echo "Deploying from $SRC_DIR to S3..."
+          
+          # Sync HTML files with no-store cache headers
+          aws s3 sync "$SRC_DIR" "s3://${{ secrets.S3_BUCKET_NAME }}" \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "no-store, no-cache, must-revalidate, max-age=0" \
+            --delete
+
+          # Sync JS, CSS, and hashed assets with 1 year immutable headers
+          aws s3 sync "$SRC_DIR" "s3://${{ secrets.S3_BUCKET_NAME }}" \
+            --exclude "*.html" \
+            --cache-control "public, max-age=31536000, immutable"
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*" \
+            --no-cli-pager
